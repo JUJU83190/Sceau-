@@ -475,11 +475,12 @@ footer.site p { margin: 0.3rem 0; }
 }
 
 .verdict-guide-card .icon {
+  display: block;
   width: 1.6rem;
   height: 1.6rem;
   margin-bottom: 0.5rem;
 }
-.verdict-guide-card .icon svg { width: 100%; height: 100%; }
+.verdict-guide-card .icon svg { display: block; width: 100%; height: 100%; }
 
 .verdict-guide-card.safe .icon { color: var(--safe-solid); }
 .verdict-guide-card.danger .icon { color: var(--danger-solid); }
@@ -516,13 +517,14 @@ footer.site p { margin: 0.3rem 0; }
 }
 
 .redflag-card .icon {
+  display: block;
   width: 1.3rem;
   height: 1.3rem;
   flex-shrink: 0;
   color: var(--danger-solid);
   margin-top: 0.1rem;
 }
-.redflag-card .icon svg { width: 100%; height: 100%; }
+.redflag-card .icon svg { display: block; width: 100%; height: 100%; }
 
 .redflag-card h3 {
   font-size: 0.88rem;
