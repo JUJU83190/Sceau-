@@ -11,10 +11,15 @@
 <a class="back" href="/">← Retour à Sceau</a>
 <h1>Politique de confidentialité</h1>
 
-<h2>Aucun cookie, aucun traceur</h2>
+<h2>Aucun cookie, mesure d'audience minimale</h2>
 <p>
-  Sceau n'utilise aucun cookie, aucun outil de mesure d'audience (type Google Analytics ou équivalent), aucun
-  pixel publicitaire et aucun traceur tiers. Le site ne dépose rien sur votre appareil pour vous suivre.
+  Sceau n'utilise aucun cookie, aucun pixel publicitaire et aucun traceur tiers (pas de Google Analytics ni
+  équivalent). Le site utilise uniquement <strong>Vercel Web Analytics</strong>, un outil de mesure d'audience
+  sans cookie : il identifie les visites via un hachage recalculé chaque jour à partir de la requête technique
+  (adresse IP, navigateur), sans identifiant permanent, et ne conserve aucune information individuelle au-delà de
+  24 heures. Seules des statistiques agrégées (nombre de visites, pages consultées, pays, référent) sont
+  accessibles à l'éditeur — jamais de profil individuel. Voir la
+  <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener">politique de confidentialité de Vercel Analytics</a>.
 </p>
 
 <h2>Ce que fait la recherche</h2>
@@ -72,5 +77,6 @@
 </p>
 
 </div>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
