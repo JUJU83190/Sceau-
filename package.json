@@ -1,0 +1,10 @@
+{
+  "name": "sceau-app",
+  "version": "0.1.0",
+  "description": "Verification de courtiers et placements sur les registres officiels francais (AMF, REGAFI, ORIAS, PSAN)",
+  "scripts": {
+    "test": "node test-amf-parser.js && node test-psan.js && node test-usurpation.js && node test-api-simulation.js && node test-api-2sources.js",
+    "dev": "node dev-server.js"
+  },
+  "license": "UNLICENSED"
+}

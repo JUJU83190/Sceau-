@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sceau — Vérifiez un acteur financier avant d'investir</title>
+<meta name="description" content="Sceau croise la liste noire de l'AMF et les registres publics pour repérer les usurpations de marques financières en France.">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="mark">S</div>
+    <h1>Sceau</h1>
+  </header>
+  <p class="tagline">Vérifiez un nom de courtier, banque ou plateforme avant de leur confier votre argent — à partir des registres publics officiels français.</p>
+
+  <div class="search-card">
+    <form class="search-form" id="search-form" autocomplete="off">
+      <input type="text" id="nom" name="nom" placeholder="Nom de l'entreprise, du courtier, du site…" minlength="2" required>
+      <button type="submit" class="btn" id="submit-btn">Vérifier</button>
+    </form>
+    <p class="hint">Ex. : Boursorama, Fortuneo, ou le nom d'un site que vous ne connaissez pas.</p>
+  </div>
+
+  <div class="result" id="result"></div>
+
+  <footer class="site">
+    <nav>
+      <a href="/mentions-legales.html">Mentions légales</a>
+      <a href="/cgu.html">CGU</a>
+      <a href="/confidentialite.html">Confidentialité</a>
+      <a href="/disclaimer.html">Avertissement financier</a>
+    </nav>
+    <p>Sceau est un projet indépendant, non affilié à l'AMF ni à l'ACPR.</p>
+    <p>Données publiques réutilisées sous Licence Ouverte Etalab 2.0 via data.gouv.fr.</p>
+  </footer>
+
+</div>
+
+<script>
+const form = document.getElementById("search-form");
+const input = document.getElementById("nom");
+const btn = document.getElementById("submit-btn");
+const resultEl = document.getElementById("result");
+
+const VERDICTS = {
+  safe: { label: "✓ Acteur régulé", classe: "safe" },
+  danger: { label: "⛔ Sur la liste noire AMF", classe: "danger" },
+  usurpation: { label: "⚠ Ressemble à une usurpation", classe: "usurpation" },
+  inconnu: { label: "? Aucune correspondance trouvée", classe: "inconnu" },
+};
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function detailLabel(detail){
+  if(!detail) return null;
+  if(detail.nom) return detail.nom;
+  if(detail.entite && detail.entite.nom) return detail.entite.nom;
+  return null;
+}
+
+function renderLoading(){
+  resultEl.className = "result visible";
+  resultEl.innerHTML = `<div class="verdict-card loading">Vérification en cours…</div>`;
+}
+
+function renderError(message){
+  resultEl.className = "result visible";
+  resultEl.innerHTML = `<div class="verdict-card error"><div class="verdict-label">Erreur</div><p class="verdict-detail">${escapeHtml(message)}</p></div>`;
+}
+
+function renderResult(data){
+  const v = VERDICTS[data.verdict] || VERDICTS.inconnu;
+  const nomProche = detailLabel(data.detail);
+  const dateMaj = data.date_extraction ? new Date(data.date_extraction).toLocaleDateString("fr-FR", { year:"numeric", month:"long", day:"numeric" }) : null;
+
+  let detailHtml = "";
+  if(data.verdict === "danger" && nomProche){
+    detailHtml = `<p class="verdict-detail">Correspond à une entité de la liste noire AMF : <strong>${escapeHtml(nomProche)}</strong>.</p>`;
+  } else if(data.verdict === "usurpation" && nomProche){
+    detailHtml = `<p class="verdict-detail">Nom proche de <strong>${escapeHtml(nomProche)}</strong>, sans y correspondre exactement. Vérifiez l'orthographe exacte auprès de la source officielle avant toute décision.</p>`;
+  } else if(data.verdict === "safe" && nomProche){
+    detailHtml = `<p class="verdict-detail">Correspond à un acteur régulé : <strong>${escapeHtml(nomProche)}</strong>.</p>`;
+  } else if(data.verdict === "inconnu"){
+    detailHtml = `<p class="verdict-detail">Ni sur la liste noire, ni dans les registres consultés. Cela ne garantit pas la fiabilité de l'acteur — vérifiez directement sur les sites officiels ci-dessous.</p>`;
+  }
+
+  const sources = Array.isArray(data.sources) ? data.sources.join(", ") : "";
+
+  resultEl.className = "result visible";
+  resultEl.innerHTML = `
+    <div class="verdict-card ${v.classe}">
+      <div class="verdict-label">${v.label}</div>
+      ${detailHtml}
+      <div class="verdict-meta">
+        Source${sources.includes(",") ? "s" : ""} : ${escapeHtml(sources)}${dateMaj ? ` — dernière mise à jour : ${dateMaj}` : ""}
+      </div>
+      <p class="verdict-warning">${escapeHtml(data.avertissement || "")}</p>
+      <a class="report-link" href="mailto:signalement@A-COMPLETER.exemple?subject=Signalement%20Sceau%20-%20${encodeURIComponent(data.recherche || "")}">Cette classification vous semble erronée ? Signalez-le par e-mail</a>
+    </div>
+  `;
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const nom = input.value.trim();
+  if(nom.length < 2) return;
+
+  btn.disabled = true;
+  renderLoading();
+
+  try {
+    const res = await fetch(`/api/verifier?nom=${encodeURIComponent(nom)}`);
+    const data = await res.json();
+    if(!res.ok){
+      renderError(data.message || "Une erreur est survenue. Réessayez dans un instant.");
+    } else {
+      renderResult(data);
+    }
+  } catch(err){
+    renderError("Impossible de contacter le service de vérification. Réessayez dans un instant.");
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
