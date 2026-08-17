@@ -35,6 +35,96 @@
 
   <div class="result" id="result" role="status" aria-live="polite"></div>
 
+  <section class="panel" aria-labelledby="guide-heading">
+    <h2 id="guide-heading">Ce que signifient les verdicts</h2>
+    <p class="panel-sub">Sceau classe chaque recherche dans l'une de ces 4 catégories.</p>
+    <div class="verdict-guide-grid">
+      <div class="verdict-guide-card safe">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 6.5v5.2c0 5-3.4 8.5-8 9.8-4.6-1.3-8-4.8-8-9.8V6.5z"/><path d="M9 12l2 2 4-4.5"/></svg></span>
+        <h3>Acteur régulé</h3>
+        <p>Correspond exactement à une entité enregistrée auprès de l'AMF, l'ACPR (REGAFI) ou ORIAS.</p>
+      </div>
+      <div class="verdict-guide-card danger">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5h.01"/></svg></span>
+        <h3>Liste noire AMF</h3>
+        <p>Cette entité est explicitement signalée par l'AMF comme non autorisée à proposer ses services en France.</p>
+      </div>
+      <div class="verdict-guide-card usurpation">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 16.5h.01"/></svg></span>
+        <h3>Ressemble à une usurpation</h3>
+        <p>Nom très proche d'un acteur régulé ou d'une entité blacklistée, sans y correspondre exactement — vérifiez l'orthographe exacte.</p>
+      </div>
+      <div class="verdict-guide-card inconnu">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.7"/><path d="M12 17h.01"/></svg></span>
+        <h3>Aucune correspondance</h3>
+        <p>Ni régulé, ni blacklisté dans les registres consultés. Ne garantit pas la fiabilité — les registres ne sont jamais exhaustifs.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="recentes-heading">
+    <h2 id="recentes-heading">Dernières alertes de la liste noire AMF</h2>
+    <p class="panel-sub">Ajouts les plus récents, directement depuis les données publiques de l'AMF.</p>
+    <ul class="recentes-list" id="recentes-list">
+      <li class="recentes-skeleton">Chargement…</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="redflags-heading">
+    <h2 id="redflags-heading">Signaux d'alerte à connaître</h2>
+    <p class="panel-sub">Les arnaques financières partagent souvent ces caractéristiques, quel que soit le nom utilisé.</p>
+    <div class="redflags-grid">
+      <div class="redflag-card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></span>
+        <div><h3>Rendement garanti et élevé</h3><p>Rendement et risque vont toujours de pair — un placement "sans risque" à haut rendement n'existe pas.</p></div>
+      </div>
+      <div class="redflag-card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+        <div><h3>Urgence à souscrire</h3><p>Appels répétés, relances agressives, compte à rebours : la pression temporelle est un classique de l'arnaque.</p></div>
+      </div>
+      <div class="redflag-card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4"/><path d="M21 7H9"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h12"/></svg></span>
+        <div><h3>Virement vers un tiers</h3><p>On vous demande de virer les fonds vers un compte ou une personne différente de l'établissement annoncé.</p></div>
+      </div>
+      <div class="redflag-card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+        <div><h3>Retraits bloqués ou retardés</h3><p>Frais imprévus, documents supplémentaires exigés au moment de retirer son argent : signal presque toujours confirmé.</p></div>
+      </div>
+      <div class="redflag-card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7c1.4 0 2.7.3 3.9.8M22 12s-3.5 7-10 7c-1.7 0-3.3-.4-4.6-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg></span>
+        <div><h3>Site opaque</h3><p>Mentions légales absentes, floues, ou visiblement copiées d'un autre site : vérifiez toujours qui édite le site.</p></div>
+      </div>
+    </div>
+    <p class="panel-source">Source : critères publiés par l'AMF et economie.gouv.fr sur la reconnaissance des arnaques financières.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="resources-heading">
+    <h2 id="resources-heading">Aller plus loin</h2>
+    <p class="panel-sub">Sceau relaie des registres publics, mais ne remplace pas une vérification directe auprès de ces organismes.</p>
+    <div class="resources-grid">
+      <a class="resource-card" href="tel:+33153456200">
+        <span class="name">AMF — Épargne Info Service<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+        <span class="desc">01 53 45 62 00 — questions sur les placements financiers.</span>
+      </a>
+      <a class="resource-card" href="tel:3414">
+        <span class="name">Assurance Banque Épargne Info Service<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+        <span class="desc">3414 — questions banque et assurance (ACPR).</span>
+      </a>
+      <a class="resource-card" href="https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne/listes-noires-et-mises-en-garde" target="_blank" rel="noopener">
+        <span class="name">Listes noires AMF<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></span>
+        <span class="desc">La source consultée par Sceau, directement sur amf-france.org.</span>
+      </a>
+      <a class="resource-card" href="https://www.regafi.fr" target="_blank" rel="noopener">
+        <span class="name">REGAFI<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></span>
+        <span class="desc">Registre officiel des agents financiers (ACPR).</span>
+      </a>
+      <a class="resource-card" href="https://www.orias.fr" target="_blank" rel="noopener">
+        <span class="name">ORIAS<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg></span>
+        <span class="desc">Registre des intermédiaires en assurance, banque et finance.</span>
+      </a>
+    </div>
+  </section>
+
   <footer class="site">
     <nav>
       <a href="/mentions-legales.html">Mentions légales</a>
@@ -185,6 +275,46 @@ window.addEventListener("popstate", () => {
     runSearch(nom.trim(), { updateUrl: false });
   }
 })();
+
+// --- Widget "dernières alertes de la liste noire AMF" ---------------------
+const recentesEl = document.getElementById("recentes-list");
+
+function formatDateCourte(iso){
+  try { return new Date(iso).toLocaleDateString("fr-FR", { day:"numeric", month:"short" }); }
+  catch(e){ return iso; }
+}
+
+async function loadRecentes(){
+  try {
+    const res = await fetch("/api/verifier?recentes=1");
+    const data = await res.json();
+    if(!res.ok || !Array.isArray(data.recentes) || !data.recentes.length){
+      recentesEl.innerHTML = `<li class="recentes-empty">Aucune donnée disponible pour le moment.</li>`;
+      return;
+    }
+    recentesEl.innerHTML = data.recentes.map(e => `
+      <li>
+        <button type="button" class="recentes-item" data-nom="${escapeHtml(e.nom)}">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="nom">${escapeHtml(e.nom)}</span>
+          <span class="meta">${escapeHtml(e.categorie || "")} · ${formatDateCourte(e.date_inscription)}</span>
+        </button>
+      </li>
+    `).join("");
+    recentesEl.querySelectorAll(".recentes-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const nom = btn.getAttribute("data-nom");
+        input.value = nom;
+        runSearch(nom);
+        resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  } catch(e){
+    recentesEl.innerHTML = `<li class="recentes-empty">Impossible de charger les dernières alertes pour le moment.</li>`;
+  }
+}
+
+loadRecentes();
 </script>
 </body>
 </html>

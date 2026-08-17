@@ -113,9 +113,13 @@ html, body {
 }
 
 .wrap {
-  max-width: 640px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 3.5rem 1.25rem 3rem;
+}
+
+@media (max-width: 560px) {
+  .wrap { padding: 2rem 1.1rem 2.5rem; }
 }
 
 /* --- Header ------------------------------------------------------------ */
@@ -374,6 +378,208 @@ footer.site nav a {
 footer.site nav a:hover { color: var(--brand-2); text-decoration: underline; }
 
 footer.site p { margin: 0.3rem 0; }
+
+/* --- Panels (sections sous la recherche) --------------------------------- */
+
+.panel {
+  margin-top: 2.75rem;
+}
+
+.panel h2 {
+  font-size: 1.15rem;
+  letter-spacing: -0.005em;
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+}
+
+.panel .panel-sub {
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+  margin: 0 0 1.1rem;
+}
+
+/* --- Dernières alertes ---------------------------------------------------- */
+
+.recentes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.recentes-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.recentes-item:hover { border-color: var(--danger-border); transform: translateX(2px); }
+.recentes-item:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
+
+.recentes-item .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--danger-solid);
+  flex-shrink: 0;
+}
+
+.recentes-item .nom {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.recentes-item .meta {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.recentes-empty, .recentes-skeleton {
+  color: var(--ink-faint);
+  font-size: 0.88rem;
+  padding: 0.75rem 0;
+}
+
+/* --- Grille "que signifient les verdicts" --------------------------------- */
+
+.verdict-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.verdict-guide-card {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 1rem;
+  background: var(--surface);
+}
+
+.verdict-guide-card .icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+.verdict-guide-card .icon svg { width: 100%; height: 100%; }
+
+.verdict-guide-card.safe .icon { color: var(--safe-solid); }
+.verdict-guide-card.danger .icon { color: var(--danger-solid); }
+.verdict-guide-card.usurpation .icon { color: var(--usurpation-solid); }
+.verdict-guide-card.inconnu .icon { color: var(--inconnu-solid); }
+
+.verdict-guide-card h3 {
+  font-size: 0.92rem;
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+}
+
+.verdict-guide-card p {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+/* --- Signaux d'alerte ------------------------------------------------------ */
+
+.redflags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.redflag-card {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 1rem;
+  background: var(--surface);
+  display: flex;
+  gap: 0.7rem;
+}
+
+.redflag-card .icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+  color: var(--danger-solid);
+  margin-top: 0.1rem;
+}
+.redflag-card .icon svg { width: 100%; height: 100%; }
+
+.redflag-card h3 {
+  font-size: 0.88rem;
+  margin: 0 0 0.25rem;
+  color: var(--ink);
+}
+
+.redflag-card p {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.panel-source {
+  margin-top: 0.9rem;
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+}
+
+/* --- Ressources officielles ------------------------------------------------ */
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.resource-card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.resource-card:hover { border-color: var(--brand-2); transform: translateY(-1px); }
+
+.resource-card .name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.resource-card .name svg { width: 1rem; height: 1rem; color: var(--ink-faint); flex-shrink: 0; }
+
+.resource-card .desc {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin-top: 0.25rem;
+}
 
 /* --- Legal pages ------------------------------------------------------------ */
 

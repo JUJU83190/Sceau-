@@ -138,6 +138,24 @@ module.exports = async function handler(req, res){
     return res.status(429).json({ error:"TROP_DE_REQUETES", message:"Trop de requêtes, réessayez dans une minute." });
   }
 
+  // Mode "dernières alertes" pour le widget d'accueil : réutilise le même cache que les
+  // recherches (pas de fetch/parse supplémentaire), pas de correspondance de nom à faire.
+  if(req.query?.recentes !== undefined){
+    try {
+      const data = await loadData();
+      const recentes = data.blacklist
+        .filter(e => e.date_inscription)
+        .slice()
+        .sort((a, b) => b.date_inscription.localeCompare(a.date_inscription))
+        .slice(0, 6)
+        .map(e => ({ nom: e.nom, categorie: e.categorie, date_inscription: e.date_inscription }));
+      return res.status(200).json({ recentes, date_extraction: new Date(data.at).toISOString() });
+    } catch(err){
+      console.error("Erreur /api/verifier?recentes:", err);
+      return res.status(503).json({ error:"SOURCE_INDISPONIBLE", message:"Source officielle temporairement indisponible." });
+    }
+  }
+
   const nomBrut = req.query?.nom;
   if(!nomBrut || typeof nomBrut !== "string"){
     return res.status(400).json({ error:"PARAMETRE_MANQUANT", message:"Paramètre 'nom' requis (2 caractères min)." });
