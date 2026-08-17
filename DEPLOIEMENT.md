@@ -20,11 +20,11 @@ Les 4 suites de tests existantes passent à l'identique après ces deux correcti
 - Normalisation de la saisie (retrait `https://`, `www.`, espaces superflus) avant matching.
 - Erreurs serveur génériques côté client (plus de détail technique exposé ; erreur complète loggée côté serveur uniquement).
 
-## ⏸️ REGAFI — structure prête, désactivée par défaut
-Voir [REGAFI-SETUP.md](REGAFI-SETUP.md) pour la procédure d'inscription et d'activation (variable d'env `REGAFI_API_KEY`). Le noyau statique `REGAFI_NOYAU` fait foi en attendant.
+## ✅ REGAFI — branché, données ouvertes, aucune clé requise
+Voir [REGAFI-SETUP.md](REGAFI-SETUP.md). Le portail ACPR expose en réalité le registre banque + assurance en accès libre — pas besoin de compte. ~27 000 entités réelles chargées et mises en cache comme AMF/PSAN.
 
-## ⏸️ ORIAS — reporté
-Voir [ORIAS-NOTES.md](ORIAS-NOTES.md) : pas d'open data pur, web service SOAP interrogeable par SIREN uniquement (pas par nom), inscription nécessitant déjà une identité professionnelle. Pas de noyau de secours fabriqué (risque de faux "safe").
+## ✅ ORIAS — branché, vérification en direct
+Voir [ORIAS-NOTES.md](ORIAS-NOTES.md). Web service officiel activé (identifiant fourni par toi, jamais stocké dans le code). Fonctionne par résolution nom → SIREN (API gouvernementale gratuite) puis vérification ORIAS, en direct à chaque recherche (~550ms mesurés). **Nécessite la variable d'environnement `ORIAS_USER_ID` sur Vercel** (voir étapes de déploiement ci-dessous) — sans elle, l'app fonctionne normalement mais sans la vérification ORIAS.
 
 ## ✅ Front-end (`public/`)
 Page d'accueil (`index.html`) connectée à `/api/verifier`, gère les 4 verdicts (safe/danger/usurpation/inconnu) avec source + date de mise à jour affichées, avertissement financier, lien de signalement par e-mail, footer conforme. Testée en local avec de vraies données (les 4 verdicts vérifiés dans un navigateur réel). Aucun cookie, aucun tracker.
@@ -48,7 +48,8 @@ Lance un petit serveur de dev sans dépendance (`dev-server.js`) qui sert `publi
 2. Créer un compte GitHub (gratuit) + un compte Vercel (connexion via GitHub) — si pas déjà fait.
 3. Pousser ce dossier `sceau-app/` sur un repo GitHub.
 4. Sur Vercel : "Import Project" → sélectionner le repo → Deploy (aucune configuration nécessaire, Vercel détecte `api/verifier.js` et sert `public/` automatiquement).
-5. Vérifier en ligne : `https://ton-projet.vercel.app/api/verifier?nom=Boursorama` → doit renvoyer `"verdict": "safe"`, puis tester la page d'accueil elle-même.
+5. Dans Project Settings → Environment Variables sur Vercel, ajouter `ORIAS_USER_ID` avec l'identifiant reçu par e-mail d'ORIAS (nécessite un redeploy pour prendre effet si ajouté après le premier déploiement).
+6. Vérifier en ligne : `https://ton-projet.vercel.app/api/verifier?nom=Boursorama` → doit renvoyer `"verdict": "safe"`, puis tester la page d'accueil elle-même.
 
 Je n'ai déployé ni poussé de code sur GitHub — à confirmer explicitement le moment venu.
 

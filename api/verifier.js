@@ -5,6 +5,7 @@
 const { parseAMFBlacklist } = require("../lib/amf-parser");
 const { parsePSAN } = require("../lib/psan-parser");
 const { parseRegafi } = require("../lib/regafi-parser");
+const { fetchOriasLive } = require("../lib/orias-client");
 const { analyze } = require("../lib/matcher-v2");
 
 // URLs open data officielles (Licence Ouverte 2.0)
@@ -26,6 +27,13 @@ const REGAFI_NOYAU = [
 
 let cache = { blacklist:null, regules:null, at:0 };
 const CACHE_MS = 6*60*60*1000;
+
+// ORIAS : pas d'export en masse (voir ORIAS-NOTES.md), donc pas de cache 6h possible —
+// vérification en direct à chaque recherche (nom -> SIREN via recherche-entreprises.api.gouv.fr,
+// gratuit et sans clé, puis vérification du SIREN auprès d'ORIAS). Désactivé tant que
+// ORIAS_USER_ID n'est pas définie (identifiant obtenu après inscription sur orias.fr,
+// voir ORIAS-NOTES.md — à stocker en variable d'environnement, jamais dans le code).
+const ORIAS_USER_ID = process.env.ORIAS_USER_ID || "";
 
 async function fetchText(url){
   const r = await fetch(url);
@@ -141,7 +149,10 @@ module.exports = async function handler(req, res){
 
   try {
     const data = await loadData();
-    const result = analyze(nom, { blacklist:data.blacklist, regules:data.regules });
+    const orias = await fetchOriasLive(nom, ORIAS_USER_ID);
+    const regules = orias.length ? [...data.regules, ...orias] : data.regules;
+
+    const result = analyze(nom, { blacklist:data.blacklist, regules });
     res.status(200).json({
       recherche: nom,
       verdict: result.verdict,
@@ -151,6 +162,7 @@ module.exports = async function handler(req, res){
         "AMF liste noire",
         "AMF liste blanche PSAN",
         data.regafiEnDirect ? "REGAFI (données ouvertes ACPR)" : "REGAFI (noyau de secours)",
+        ...(ORIAS_USER_ID ? ["ORIAS (vérification en direct)"] : []),
       ],
       date_extraction: new Date(data.at).toISOString(),
       stats: {

@@ -1,20 +1,30 @@
-# ORIAS — état des lieux et recommandation
+# ORIAS — branché (2026-08-17)
 
-## Ce que j'ai vérifié
+**Mise à jour : ce document contredit sa version précédente**, qui concluait qu'ORIAS était hors de portée sans être soi-même un professionnel immatriculé. L'inscription a finalement abouti (voir historique de conversation) et l'intégration est fonctionnelle.
 
-- **Pas d'open data pur.** Contrairement à l'AMF, il n'existe aucun jeu de données ORIAS téléchargeable sans compte sur data.gouv.fr ou ailleurs.
-- **Seule option officielle : un web service SOAP** (`https://ws.orias.fr/service?wsdl`). Deux limites structurelles importantes :
-  1. **La recherche se fait par SIREN ou numéro d'immatriculation ORIAS — pas par nom d'entreprise.** Or Sceau reçoit une saisie utilisateur en texte libre (un nom). Brancher ORIAS suppose donc de résoudre d'abord *nom → SIREN* via une autre source (ex. API Sirene de l'INSEE), ce qui ajoute une dépendance et une source d'erreur supplémentaires avant même d'interroger ORIAS.
-  2. **L'inscription au web service n'est pas un simple compte développeur en libre-service** comme pour REGAFI : le formulaire (`orias.fr/webService/inscription`) demande la dénomination, le SIREN et le numéro ORIAS *du demandeur lui-même* — ça suppose d'être déjà un professionnel identifié, pas juste un développeur curieux. Le délai/processus d'approbation n'est pas documenté publiquement.
-- **Solutions tierces existantes (BrokPass, orias.rest, etc.)** : non retenues, conformément à ta consigne — ce sont des services non officiels, donc une dépendance de fiabilité/juridique supplémentaire que tu n'as pas validée.
+## Comment ça marche
 
-## Complexité estimée si tu veux quand même le faire
+Contrairement à AMF/PSAN/REGAFI, ORIAS n'a pas d'export en masse : le web service (SOAP) ne recherche que par SIREN, pas par nom. `lib/orias-client.js` fait donc deux appels **en direct à chaque recherche** (pas de cache 6h possible) :
 
-- Résolution nom → SIREN (API Sirene INSEE, gratuite et ouverte celle-là) : ~1-2h de dev.
-- Inscription + attente d'approbation ORIAS : délai hors de notre contrôle, potentiellement plusieurs jours.
-- Client SOAP en JS (le web service n'est pas REST/JSON) : quelques heures, mais une brique technique de plus à maintenir pour un seul registre.
-- Au total : probablement le plus gros morceau des 3 registres (AMF/REGAFI/ORIAS) en temps de dev, pour un registre qui **complète** REGAFI sans le remplacer (deux populations différentes : réseau bancaire vs intermédiaires assurance/courtage).
+1. **`recherche-entreprises.api.gouv.fr`** (API publique gouvernementale, gratuite, sans clé) : résout le nom saisi en 1 à 3 SIREN candidats.
+2. **Web service SOAP ORIAS** (`ws.orias.fr/ws/service/`) : vérifie si chaque SIREN candidat est inscrit et actif (statut `INSCRIT`) sur le registre.
 
-## Recommandation
+Mesuré en conditions réelles : ~550ms pour les deux appels combinés — largement dans les temps.
 
-Reporter ORIAS à une itération ultérieure. Pas de noyau de secours "ORIAS_NOYAU" ajouté dans le code pour l'instant : je préfère ne pas inventer une liste de quelques intermédiaires "vérifiés" à la main, faute de pouvoir garantir leur statut réel à cette date — un faux "safe" serait pire qu'une absence de données sur ce registre. Si tu veux un noyau minimal malgré tout, donne-moi 2-3 noms d'intermédiaires ORIAS que tu as toi-même vérifiés sur orias.fr et je les ajoute à l'identique du modèle `REGAFI_NOYAU`.
+## Activation
+
+Nécessite la variable d'environnement `ORIAS_USER_ID` (l'identifiant reçu par e-mail après activation du web service sur orias.fr). **Cette valeur n'est stockée nulle part dans le code ni dans ce dépôt** — à ajouter uniquement dans Vercel : Project Settings → Environment Variables → `ORIAS_USER_ID`.
+
+Tant que la variable n'est pas définie, `fetchOriasLive` renvoie systématiquement un tableau vide sans appeler aucune API — le reste de l'application fonctionne normalement sans ORIAS.
+
+## Vérifié en conditions réelles
+
+Recherche "Verspieren" (courtier d'assurance connu) → SIREN 321502049 trouvé via l'API gouvernementale → confirmé inscrit ORIAS (COA + MA + MIOBSP, statut INSCRIT) → verdict "safe".
+
+## Limite connue
+
+Le rapprochement nom → SIREN utilise le moteur de recherche textuelle de `recherche-entreprises.api.gouv.fr`, pas notre propre logique de correspondance. Si le nom saisi est trop approximatif pour que cette API renvoie le bon SIREN en tête de liste, ORIAS ne sera pas interrogé pour la bonne entité — dans ce cas, la recherche retombe simplement sur les autres sources (AMF, PSAN, REGAFI) sans casser quoi que ce soit.
+
+## À ne pas faire
+
+Le service tiers `orias.rest` (ou équivalents non officiels) reste explicitement écarté, conformément à la consigne d'origine — cette intégration n'utilise que des sources officielles (ORIAS lui-même + l'API gouvernementale recherche-entreprises).
