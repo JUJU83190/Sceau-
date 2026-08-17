@@ -188,7 +188,7 @@ module.exports = async function handler(req, res){
         prestataires_psan: data.nbPsan || 0,
         entites_regafi: data.nbRegafi || 0,
       },
-      avertissement: "Information relayée à titre indicatif, ne constitue pas un conseil en investissement. Vérifiez sur regafi.fr / amf-france.org."
+      avertissement: "Information relayée à titre indicatif, ne constitue pas un conseil en investissement. Vérifiez sur amf-france.org, regafi.fr ou orias.fr."
     });
   } catch(err){
     console.error("Erreur /api/verifier:", err);
