@@ -6,6 +6,7 @@
 <title>Sceau — Vérifiez un acteur financier avant d'investir</title>
 <meta name="description" content="Sceau croise la liste noire de l'AMF et les registres publics pour repérer les usurpations de marques financières en France.">
 <link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f3a5f'/%3E%3Ctext x='16' y='23' font-family='Arial,Helvetica,sans-serif' font-size='19' font-weight='700' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 <div class="wrap">
@@ -18,13 +19,14 @@
 
   <div class="search-card">
     <form class="search-form" id="search-form" autocomplete="off">
+      <label for="nom" class="visually-hidden">Nom de l'entreprise, du courtier ou du site à vérifier</label>
       <input type="text" id="nom" name="nom" placeholder="Nom de l'entreprise, du courtier, du site…" minlength="2" required>
       <button type="submit" class="btn" id="submit-btn">Vérifier</button>
     </form>
     <p class="hint">Ex. : Boursorama, Fortuneo, ou le nom d'un site que vous ne connaissez pas.</p>
   </div>
 
-  <div class="result" id="result"></div>
+  <div class="result" id="result" role="status" aria-live="polite"></div>
 
   <footer class="site">
     <nav>
@@ -105,10 +107,14 @@ function renderResult(data){
   `;
 }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const nom = input.value.trim();
+async function runSearch(nom, { updateUrl = true } = {}){
   if(nom.length < 2) return;
+
+  if(updateUrl){
+    const url = new URL(window.location.href);
+    url.searchParams.set("nom", nom);
+    window.history.pushState({ nom }, "", url);
+  }
 
   btn.disabled = true;
   renderLoading();
@@ -126,7 +132,32 @@ form.addEventListener("submit", async (e) => {
   } finally {
     btn.disabled = false;
   }
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  runSearch(input.value.trim());
 });
+
+window.addEventListener("popstate", () => {
+  const nom = new URL(window.location.href).searchParams.get("nom");
+  if(nom){
+    input.value = nom;
+    runSearch(nom, { updateUrl: false });
+  } else {
+    resultEl.className = "result";
+    resultEl.innerHTML = "";
+  }
+});
+
+// Recherche partageable : ?nom=... dans l'URL relance automatiquement la recherche.
+(function initFromUrl(){
+  const nom = new URL(window.location.href).searchParams.get("nom");
+  if(nom && nom.trim().length >= 2){
+    input.value = nom.trim();
+    runSearch(nom.trim(), { updateUrl: false });
+  }
+})();
 </script>
 </body>
 </html>
