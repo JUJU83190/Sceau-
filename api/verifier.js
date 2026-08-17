@@ -1,16 +1,23 @@
 // api/verifier.js — fonction serverless PRODUCTION (Vercel)
-// Sources réelles : liste noire AMF + liste blanche PSAN (open data data.gouv.fr)
-// + noyau REGAFI en dur, remplaçable par l'API REGAFI officielle (voir REGAFI-SETUP.md)
+// Sources réelles : liste noire AMF + liste blanche PSAN (data.gouv.fr)
+// + registre REGAFI banque/assurance (developer.regafi.banque-france.fr, données ouvertes, sans clé API)
 
 const { parseAMFBlacklist } = require("../lib/amf-parser");
 const { parsePSAN } = require("../lib/psan-parser");
+const { parseRegafi } = require("../lib/regafi-parser");
 const { analyze } = require("../lib/matcher-v2");
 
 // URLs open data officielles (Licence Ouverte 2.0)
 const URL_LISTE_NOIRE = "https://www.data.gouv.fr/api/1/datasets/r/d2d9df6d-1cd2-41a8-96f5-684cb3057ecb";
 const URL_PSAN = "https://www.data.gouv.fr/api/1/datasets/r/e03f8899-2499-4826-aaae-6842f520bdac";
 
-// Noyau régulé provisoire (à remplacer/compléter par l'API REGAFI une fois REGAFI_API_KEY configurée)
+// REGAFI (ACPR/Banque de France) : portail OpenDataSoft, aucune clé requise.
+// ?select=... limite l'export aux colonnes utiles (le CSV complet dépasse 200 Mo à cause
+// de colonnes JSON imbriquées — autorisations, passeports... — inutiles pour Sceau).
+const URL_REGAFI_BANQUE = "https://developer.regafi.banque-france.fr/api/explore/v2.1/catalog/datasets/catalogue-banque/exports/csv?select=denomination,siren,forme_juridique,categorie";
+const URL_REGAFI_ASSURANCE = "https://developer.regafi.banque-france.fr/api/explore/v2.1/catalog/datasets/catalogue-assurance/exports/csv?select=denomination,siren,forme_juridique,categorie";
+
+// Noyau de secours, utilisé uniquement si le fetch REGAFI échoue (voir loadData).
 const REGAFI_NOYAU = [
   { nom:"Trade Republic Bank GmbH", statut:"Agréé — établissement de paiement", source:"REGAFI" },
   { nom:"Boursorama SA", statut:"Agréé — établissement de crédit", source:"REGAFI" },
@@ -26,57 +33,55 @@ async function fetchText(url){
   return r.text();
 }
 
-// --- REGAFI (désactivé par défaut) --------------------------------------
-// Nécessite un compte + une clé API sur developer.regafi.banque-france.fr
-// (inscription gratuite, voir REGAFI-SETUP.md pour la procédure complète).
-// Tant que REGAFI_API_KEY n'est pas définie, le noyau statique REGAFI_NOYAU
-// ci-dessus fait office de repli — le reste de l'application fonctionne
-// normalement sans cette clé.
-const REGAFI_API_KEY = process.env.REGAFI_API_KEY || "";
-// TODO(après inscription) : confirmer le chemin exact de l'endpoint de recherche
-// par dénomination et le nom de l'en-tête d'authentification dans la doc du
-// portail (visible uniquement une fois connecté) et ajuster REGAFI_API_URL /
-// le mapping ci-dessous en conséquence.
-const REGAFI_API_URL = "https://developer.regafi.banque-france.fr/api-fr/regafi/v1/etablissements";
-
-async function fetchRegafiLive(query){
-  if(!REGAFI_API_KEY) return null;
-  try {
-    const url = `${REGAFI_API_URL}?denomination=${encodeURIComponent(query)}`;
-    const r = await fetch(url, { headers: { "X-IBM-Client-Id": REGAFI_API_KEY } });
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    const data = await r.json();
-    const items = Array.isArray(data) ? data : (data.items || data.results || []);
-    // Mapping provisoire : à ajuster selon les champs réels de la réponse REGAFI.
-    return items.map(e => ({
-      nom: e.registered_name || e.denomination || e.nom || "",
-      statut: "Agréé (REGAFI)",
-      source: "REGAFI",
-    })).filter(e => e.nom);
-  } catch(e){
-    console.error("REGAFI indisponible, repli sur le noyau statique:", e.message);
-    return null;
-  }
-}
-// --------------------------------------------------------------------------
-
 async function loadData(){
   const now = Date.now();
   if(cache.blacklist && now - cache.at < CACHE_MS) return cache;
 
+  // Les 4 sources sont récupérées en parallèle (et non l'une après l'autre) pour rester
+  // confortablement sous la limite d'exécution de 10s des fonctions Vercel Hobby.
+  const [blacklistRes, psanRes, regafiBanqueRes, regafiAssuranceRes] = await Promise.allSettled([
+    fetchText(URL_LISTE_NOIRE),
+    fetchText(URL_PSAN),
+    fetchText(URL_REGAFI_BANQUE),
+    fetchText(URL_REGAFI_ASSURANCE),
+  ]);
+
   // Liste noire (obligatoire)
-  const blacklist = parseAMFBlacklist(await fetchText(URL_LISTE_NOIRE));
+  if(blacklistRes.status !== "fulfilled") throw new Error("Liste noire AMF indisponible : " + blacklistRes.reason?.message);
+  const blacklist = parseAMFBlacklist(blacklistRes.value);
 
   // PSAN (best-effort : si indisponible, on continue sans planter)
   let psan = [];
-  try { psan = parsePSAN(await fetchText(URL_PSAN)); } catch(e){ psan = []; }
+  if(psanRes.status === "fulfilled"){
+    try { psan = parsePSAN(psanRes.value); } catch(e){ psan = []; }
+  }
+
+  // REGAFI (best-effort). Le noyau statique reste toujours fusionné en complément (pas
+  // seulement en repli) : certaines marques connues (ex. Fortuneo) sont enregistrées sous
+  // leur nom légal officiel (Arkéa Direct Bank) plutôt que leur nom commercial, donc ne
+  // matchent pas forcément dans les données REGAFI même quand elles sont disponibles.
+  let regafiLive = [], regafiEnDirect = false;
+  if(regafiBanqueRes.status === "fulfilled" && regafiAssuranceRes.status === "fulfilled"){
+    try {
+      regafiLive = [
+        ...parseRegafi(regafiBanqueRes.value, { source: "REGAFI (banque)" }),
+        ...parseRegafi(regafiAssuranceRes.value, { source: "REGAFI (assurance)" }),
+      ];
+      regafiEnDirect = true;
+    } catch(e){
+      console.error("Erreur de parsing REGAFI :", e.message);
+    }
+  } else {
+    console.error("REGAFI (données ouvertes) indisponible, le noyau statique reste actif en complément");
+  }
+  const regafi = [...regafiLive, ...REGAFI_NOYAU];
 
   const regules = [
-    ...REGAFI_NOYAU,
+    ...regafi,
     ...psan.map(p => ({ nom:p.nom, statut:p.statut, source:"PSAN (AMF)" }))
   ];
 
-  cache = { blacklist, regules, at:now, nbPsan:psan.length };
+  cache = { blacklist, regules, at:now, nbPsan:psan.length, nbRegafi:regafi.length, regafiEnDirect };
   return cache;
 }
 
@@ -136,10 +141,7 @@ module.exports = async function handler(req, res){
 
   try {
     const data = await loadData();
-    const regafiLive = await fetchRegafiLive(nom);
-    const regules = regafiLive ? [...data.regules, ...regafiLive] : data.regules;
-
-    const result = analyze(nom, { blacklist:data.blacklist, regules });
+    const result = analyze(nom, { blacklist:data.blacklist, regules:data.regules });
     res.status(200).json({
       recherche: nom,
       verdict: result.verdict,
@@ -148,10 +150,14 @@ module.exports = async function handler(req, res){
       sources: [
         "AMF liste noire",
         "AMF liste blanche PSAN",
-        regafiLive ? "REGAFI (API officielle)" : "REGAFI (noyau provisoire)",
+        data.regafiEnDirect ? "REGAFI (données ouvertes ACPR)" : "REGAFI (noyau de secours)",
       ],
       date_extraction: new Date(data.at).toISOString(),
-      stats: { entites_liste_noire: data.blacklist.length, prestataires_psan: data.nbPsan || 0 },
+      stats: {
+        entites_liste_noire: data.blacklist.length,
+        prestataires_psan: data.nbPsan || 0,
+        entites_regafi: data.nbRegafi || 0,
+      },
       avertissement: "Information relayée à titre indicatif, ne constitue pas un conseil en investissement. Vérifiez sur regafi.fr / amf-france.org."
     });
   } catch(err){

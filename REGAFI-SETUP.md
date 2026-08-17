@@ -1,33 +1,26 @@
-# REGAFI — Activer l'API officielle (optionnel)
+# REGAFI — branché, aucune inscription nécessaire
 
-Le projet fonctionne dès aujourd'hui **sans** cette étape, grâce à un noyau statique (`REGAFI_NOYAU` dans `api/verifier.js`, 3 entités : Trade Republic, Boursorama, Fortuneo). Cette page documente comment brancher la vraie API REGAFI quand tu auras le temps de t'en occuper.
+**Mise à jour du 2026-08-17 : ce document est obsolète dans sa version précédente.** En creusant pour activer REGAFI, il s'est avéré que le portail `developer.regafi.banque-france.fr` expose en réalité les registres banque et assurance en **données ouvertes**, comme l'AMF — pas besoin de compte ni de clé API.
 
-## Pourquoi ce n'est pas déjà branché
+## Ce qui est branché
 
-Contrairement à l'AMF (CSV ouvert, sans compte), REGAFI (registre des agents financiers, ACPR/Banque de France) n'expose ses données que via une API qui nécessite une inscription développeur.
+`api/verifier.js` télécharge et met en cache (6h, comme AMF/PSAN) :
+- Le registre bancaire REGAFI (`catalogue-banque`, ~25 500 entités)
+- Le registre assurance REGAFI (`catalogue-assurance`, ~1 750 entités)
 
-## Étapes pour toi
+via le portail OpenDataSoft de l'ACPR, en ne récupérant que les colonnes utiles (`?select=denomination,siren,forme_juridique,categorie`) — le fichier complet dépasse 200 Mo à cause de colonnes JSON imbriquées (autorisations détaillées, passeports européens...) inutiles pour Sceau.
 
-1. Va sur **https://developer.regafi.banque-france.fr**
-2. Crée un compte développeur (gratuit) : `developer.regafi.banque-france.fr/user/register`
-3. Une fois connecté, va dans le catalogue d'API, souscris au produit **REGAFI FR** (ou **REGAFI EN** si tu préfères les réponses en anglais)
-4. Choisis un plan — le plan par défaut (100 appels/heure) suffit largement pour ce projet
-5. Récupère ta **clé d'application** (API key / client ID) depuis ton tableau de bord développeur
-6. Une fois connecté, consulte la documentation de l'API dans le portail (elle n'est pas visible publiquement sans compte) pour confirmer :
-   - le chemin exact de l'endpoint de recherche par dénomination sociale
-   - le nom exact de l'en-tête d'authentification attendu (probablement `X-IBM-Client-Id`, à confirmer)
-   - les noms des champs de la réponse JSON (le code actuel suppose `registered_name`, à ajuster si différent)
+Le noyau statique `REGAFI_NOYAU` (Trade Republic, Boursorama, Fortuneo) reste fusionné en complément, pas en repli : certaines marques commerciales connues (ex. Fortuneo) sont enregistrées sous leur nom légal officiel (Arkéa Direct Bank) plutôt que leur nom commercial, donc ne matchent pas toujours dans les données REGAFI même quand elles sont disponibles.
 
-## Comment activer côté code
+## Limite connue
 
-Le code d'appel existe déjà dans `api/verifier.js` (fonction `fetchRegafiLive`), désactivé par défaut. Pour l'activer :
+Le registre REGAFI liste des entités sous leur **nom légal officiel**, qui diffère parfois du nom commercial connu du public :
+- Fortuneo → Arkéa Direct Bank *(couvert par le noyau statique)*
+- LCL → Crédit lyonnais *(acronyme non résolu automatiquement)*
+- HSBC France → HSBC Continental Europe *(renommage non résolu automatiquement)*
 
-1. Ajoute une variable d'environnement `REGAFI_API_KEY` avec ta clé :
-   - En local : crée un fichier `.env.local` (non commité) avec `REGAFI_API_KEY=ta_cle_ici`, ou exporte la variable dans ton shell.
-   - Sur Vercel : Project Settings → Environment Variables → ajoute `REGAFI_API_KEY`.
-2. Si l'URL de l'endpoint (`REGAFI_API_URL`) ou le mapping des champs de réponse diffèrent de ce que tu as trouvé à l'étape 6 ci-dessus, ajuste-les directement dans `api/verifier.js` (section clairement commentée `--- REGAFI (désactivé par défaut) ---`).
-3. Tant que `REGAFI_API_KEY` n'est pas définie, rien ne change : le noyau statique continue de faire foi, aucun risque de casser le reste de l'app.
+Le moteur ne fait pas de résolution acronyme/marque commerciale → nom légal (ce serait une extension de l'algorithme de matching, hors périmètre de cette mise à jour). Ces cas remontent en "inconnu" plutôt qu'en "safe" — pas une fausse alerte, juste une absence de correspondance.
 
-## Ce que ça ajoute une fois actif
+## Si tu veux quand même l'ancienne API par clé (non nécessaire)
 
-Chaque recherche interroge en direct l'API REGAFI par dénomination, en complément du noyau statique (pas en remplacement) — donc même en cas de panne de l'API REGAFI, le noyau reste disponible en repli.
+Le portail expose aussi une API "REGAFI FR/EN" classique par abonnement (`developer.regafi.banque-france.fr`, inscription libre sur `acpr.opendatasoft.com/signup`) mais elle n'apporte rien de plus que les données ouvertes déjà branchées pour cet usage — inutile de s'y inscrire.
