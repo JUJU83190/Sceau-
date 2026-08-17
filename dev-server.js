@@ -28,8 +28,13 @@ function serveStatic(pathname, res){
   }
   fs.readFile(fullPath, (err, data) => {
     if(err){
-      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-      return res.end("Page introuvable");
+      // Vercel sert automatiquement public/404.html pour les routes inconnues
+      // sur un site statique ; on reproduit ce comportement en local.
+      fs.readFile(path.join(PUBLIC_DIR, "404.html"), (err2, data404) => {
+        res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(err2 ? "Page introuvable" : data404);
+      });
+      return;
     }
     res.writeHead(200, { "Content-Type": MIME[path.extname(fullPath)] || "application/octet-stream" });
     res.end(data);
