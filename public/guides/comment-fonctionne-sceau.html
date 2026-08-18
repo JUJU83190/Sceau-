@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem("sceau-theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comment fonctionne Sceau : sources, méthode et limites | Sceau</title>
+<meta name="description" content="Quelles sources Sceau utilise, à quelle fréquence elles sont mises à jour, comment fonctionne la détection d'usurpation, et les limites à connaître.">
+<link rel="canonical" href="https://sceau-ochre.vercel.app/guides/comment-fonctionne-sceau.html">
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23000091'/%3E%3Cpath d='M16 6 24 9v6c0 6-3.6 9.8-8 11-4.4-1.2-8-5-8-11V9z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 16.2l2.4 2.4 4.6-5.2' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta property="og:type" content="article">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Sceau">
+<meta property="og:title" content="Comment fonctionne Sceau : sources, méthode et limites">
+<meta property="og:description" content="Quelles sources Sceau utilise, à quelle fréquence elles sont mises à jour, comment fonctionne la détection d'usurpation, et les limites à connaître.">
+<meta property="og:url" content="https://sceau-ochre.vercel.app/guides/comment-fonctionne-sceau.html">
+<meta property="og:image" content="https://sceau-ochre.vercel.app/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sceau-ochre.vercel.app/og-image.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Comment fonctionne Sceau : sources, méthode et limites",
+  "description": "Quelles sources Sceau utilise, à quelle fréquence elles sont mises à jour, comment fonctionne la détection d'usurpation, et les limites à connaître.",
+  "inLanguage": "fr-FR",
+  "author": { "@type": "Organization", "name": "Sceau", "url": "https://sceau-ochre.vercel.app/" },
+  "publisher": { "@type": "Organization", "name": "Sceau" },
+  "mainEntityOfPage": "https://sceau-ochre.vercel.app/guides/comment-fonctionne-sceau.html",
+  "datePublished": "2026-08-18",
+  "dateModified": "2026-08-18"
+}
+</script>
+</head>
+<body class="legal-page">
+<button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Passer en mode sombre">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+</button>
+<div class="wrap">
+<a class="back" href="/">← Retour à Sceau</a>
+<main>
+
+<h1>Comment fonctionne Sceau</h1>
+<p>
+  Sceau est un outil indépendant, pas une autorité. Cette page explique concrètement ce qu'il vérifie, avec quelles
+  données, et où s'arrêtent ses limites, pour que vous sachiez exactement ce que signifie (et ne signifie pas) un
+  résultat.
+</p>
+
+<h2>Les sources utilisées</h2>
+<ul>
+  <li><strong>Liste noire de l'AMF</strong> : entités identifiées comme non autorisées, publiées sous Licence Ouverte Etalab 2.0 via data.gouv.fr.</li>
+  <li><strong>Liste blanche PSAN de l'AMF</strong> : prestataires de services sur actifs numériques au statut "Agréé" actif.</li>
+  <li><strong>REGAFI</strong> (ACPR/Banque de France) : établissements agréés banque et assurance, données ouvertes.</li>
+  <li><strong>ORIAS</strong> : intermédiaires en assurance, banque et finance, vérifiés en direct par nom résolu en SIREN.</li>
+</ul>
+<p>
+  Voir le détail de chaque source dans notre <a href="/guides/glossaire.html">glossaire</a>.
+</p>
+
+<h2>Fréquence de mise à jour</h2>
+<p>
+  La liste noire AMF, la liste PSAN et REGAFI sont mises en cache 6 heures côté serveur, pour rester réactif sans
+  surcharger les portails officiels à chaque recherche. ORIAS n'a pas d'export en masse disponible : chaque
+  recherche interroge son service en direct, sans délai de cache.
+</p>
+
+<h2>Comment fonctionne la détection</h2>
+<p>
+  Une recherche compare le nom saisi, normalisé (casse, accents, formes juridiques), à deux ensembles : les entités
+  régulées (REGAFI, ORIAS, PSAN) et la liste noire AMF. Une correspondance exacte donne un verdict "Acteur régulé"
+  ou "Liste noire". Un nom très proche d'une entité connue, sans y correspondre exactement, déclenche le verdict
+  "Ressemble à une usurpation" plutôt qu'un simple "non trouvé" : c'est ce qui permet de repérer les imitations de
+  noms, expliquées dans notre <a href="/guides/usurpation-identite-banque.html">guide sur l'usurpation
+  d'identité</a>.
+</p>
+
+<h2>Les limites à connaître</h2>
+<p>
+  Sceau relaie des registres publics, il ne les remplace pas. Une absence de résultat ne garantit jamais la
+  fiabilité d'un acteur : les registres ne sont jamais parfaitement exhaustifs ni instantanés. En cas de doute,
+  toujours recouper avec une vérification directe sur amf-france.org, regafi.fr ou orias.fr, et ne jamais se fier à
+  un seul outil pour une décision financière.
+</p>
+
+<h2>Vie privée et indépendance</h2>
+<p>
+  Sceau ne dispose d'aucune base de données propre et ne suit pas les visiteurs (voir la
+  <a href="/confidentialite.html">politique de confidentialité</a>). C'est un projet indépendant, gratuit et sans
+  activité commerciale, non affilié à l'AMF, à l'ACPR ni à l'ORIAS (voir les
+  <a href="/mentions-legales.html">mentions légales</a>).
+</p>
+
+<div class="cta-box">
+  <p><a href="/">→ Faire une recherche avec Sceau</a></p>
+</div>
+
+<p>Voir aussi : <a href="/guides/">tous les guides</a>, <a href="/guides/glossaire.html">le glossaire</a>.</p>
+
+</main>
+</div>
+<script defer src="/theme-toggle.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { URL } = require("url");
 const verifier = require("./api/verifier");
+const rss = require("./api/rss");
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -18,6 +19,7 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
   ".xml": "application/xml; charset=utf-8",
   ".woff2": "font/woff2",
+  ".png": "image/png",
 };
 
 function serveStatic(pathname, res){
@@ -42,25 +44,47 @@ function serveStatic(pathname, res){
   });
 }
 
+function makeMockRes(res){
+  return {
+    _status: 200,
+    _headers: {},
+    status(code){ this._status = code; return this; },
+    setHeader(key, value){ this._headers[key] = value; return this; },
+    json(obj){
+      res.writeHead(this._status, { "Content-Type": "application/json; charset=utf-8", ...this._headers });
+      res.end(JSON.stringify(obj));
+    },
+    send(body){
+      res.writeHead(this._status, { "Content-Type": this._headers["Content-Type"] || "text/plain; charset=utf-8", ...this._headers });
+      res.end(body);
+    },
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if(url.pathname === "/api/verifier"){
     const query = Object.fromEntries(url.searchParams.entries());
-    const mockRes = {
-      _status: 200,
-      status(code){ this._status = code; return this; },
-      json(obj){
-        res.writeHead(this._status, { "Content-Type": "application/json; charset=utf-8" });
-        res.end(JSON.stringify(obj));
-      },
-    };
+    const mockRes = makeMockRes(res);
     try {
       await verifier({ query, headers: req.headers, socket: req.socket }, mockRes);
     } catch(err){
       console.error(err);
       res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
       res.end(JSON.stringify({ error: "ERREUR_SERVEUR", message: "Erreur interne (voir logs du serveur de dev)." }));
+    }
+    return;
+  }
+
+  if(url.pathname === "/api/rss" || url.pathname === "/rss.xml"){
+    const mockRes = makeMockRes(res);
+    try {
+      await rss({ headers: req.headers, socket: req.socket }, mockRes);
+    } catch(err){
+      console.error(err);
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Erreur interne (voir logs du serveur de dev).");
     }
     return;
   }
