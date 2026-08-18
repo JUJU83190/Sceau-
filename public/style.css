@@ -584,6 +584,45 @@ footer.site p { margin: 0.3rem 0; }
   margin-top: 0.25rem;
 }
 
+/* --- Zone de suggestions ----------------------------------------------------- */
+
+.suggestion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.suggestion-form textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 2px solid var(--texte);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-family: var(--font-base);
+  color: var(--texte);
+  background: var(--fond);
+  resize: vertical;
+  min-height: 5.5rem;
+  transition: border-color 0.15s ease;
+}
+
+.suggestion-form textarea::placeholder { color: var(--texte-faint); }
+
+.suggestion-form textarea:focus {
+  outline: 2px solid var(--bleu);
+  outline-offset: 1px;
+  border-color: var(--bleu);
+}
+
+.suggestion-form button.btn { align-self: flex-start; }
+
+.suggestion-status {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--texte-muted);
+}
+
 /* --- Legal pages ------------------------------------------------------------ */
 
 .legal-page .wrap { max-width: 760px; }

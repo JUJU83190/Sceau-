@@ -156,6 +156,17 @@
     </div>
   </section>
 
+  <section class="panel" aria-labelledby="suggestion-heading">
+    <h2 id="suggestion-heading">Une idée pour améliorer Sceau ?</h2>
+    <p class="panel-sub">Une suggestion, un bug, une source à ajouter : écrivez-le ici, ça part directement par e-mail.</p>
+    <form class="suggestion-form" id="suggestion-form">
+      <label for="suggestion-text" class="visually-hidden">Votre suggestion</label>
+      <textarea id="suggestion-text" name="suggestion" rows="4" maxlength="2000" placeholder="Votre idée, remarque ou suggestion…"></textarea>
+      <button type="submit" class="btn" id="suggestion-submit">Envoyer par e-mail</button>
+    </form>
+    <p class="suggestion-status" id="suggestion-status" hidden></p>
+  </section>
+
   <footer class="site">
     <nav>
       <a href="/mentions-legales.html">Mentions légales</a>
@@ -346,6 +357,22 @@ async function loadRecentes(){
 }
 
 loadRecentes();
+
+// --- Zone de suggestions ---------------------------------------------------
+const suggestionForm = document.getElementById("suggestion-form");
+const suggestionText = document.getElementById("suggestion-text");
+const suggestionStatus = document.getElementById("suggestion-status");
+
+suggestionForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const texte = suggestionText.value.trim();
+  if(!texte) return;
+  const subject = encodeURIComponent("Suggestion Sceau");
+  const body = encodeURIComponent(texte);
+  window.location.href = `mailto:julienbad22@gmail.com?subject=${subject}&body=${body}`;
+  suggestionStatus.hidden = false;
+  suggestionStatus.textContent = "Votre messagerie e-mail va s'ouvrir avec votre suggestion pré-remplie.";
+});
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 </body>
