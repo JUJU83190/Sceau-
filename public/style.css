@@ -1,4 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700;800&display=swap');
+/* Polices auto-hebergees (sous-ensemble latin uniquement, suffisant pour le
+   contenu francophone du site) : evite une dependance a fonts.googleapis.com
+   qui exposerait l'IP des visiteurs a Google a chaque page vue, et supprime
+   la chaine de requetes sequentielle HTML -> CSS Google -> fichier de police. */
+@font-face {
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/public-sans-variable.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2');
+}
 
 :root {
   color-scheme: light;
