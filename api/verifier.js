@@ -161,8 +161,11 @@ module.exports = async function handler(req, res){
     return res.status(400).json({ error:"PARAMETRE_MANQUANT", message:"Paramètre 'nom' requis (2 caractères min)." });
   }
   const nom = normalizeInput(nomBrut);
-  if(nom.length < 2){
-    return res.status(400).json({ error:"PARAMETRE_INVALIDE", message:"Paramètre 'nom' requis (2 caractères min)." });
+  // Plafond haut : analyze() compare la requête à ~30 000 entités via une distance de
+  // Levenshtein (coût proportionnel à la longueur des deux chaînes) — sans limite, une
+  // requête de plusieurs dizaines de milliers de caractères pourrait saturer l'instance.
+  if(nom.length < 2 || nom.length > 200){
+    return res.status(400).json({ error:"PARAMETRE_INVALIDE", message:"Paramètre 'nom' requis (2 à 200 caractères)." });
   }
 
   try {

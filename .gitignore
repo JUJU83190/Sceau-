@@ -1,0 +1,13 @@
+# Secrets locaux (jamais commit)
+.env
+.env.local
+.env.*.local
+
+# Dépendances (si un jour ajoutées)
+node_modules/
+
+# Fichiers systeme / editeur
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
