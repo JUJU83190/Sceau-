@@ -768,3 +768,36 @@ footer.site p { margin: 0.3rem 0; }
 }
 .legal-page a.back:hover { text-decoration: underline; }
 .legal-page a { color: var(--bleu); }
+
+/* --- Guides : encart d'appel a l'action + grille du sommaire ---------------- */
+
+.cta-box {
+  background: var(--bleu-pale);
+  border-left: 3px solid var(--bleu);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  margin: 1.75rem 0;
+}
+.cta-box p { color: var(--texte); margin: 0; }
+.cta-box a { font-weight: 700; }
+
+.guides-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  margin: 1.5rem 0 2rem;
+}
+.guide-card {
+  display: block;
+  border: 1px solid var(--gris-ligne);
+  border-left: 3px solid var(--bleu);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  background: var(--fond);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.12s ease;
+}
+.guide-card:hover { background: var(--bleu-pale); }
+.guide-card .name { font-weight: 700; font-size: 0.95rem; color: var(--texte); display: block; margin-bottom: 0.3rem; }
+.guide-card .desc { font-size: 0.85rem; color: var(--texte-muted); }

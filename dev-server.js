@@ -21,7 +21,7 @@ const MIME = {
 };
 
 function serveStatic(pathname, res){
-  const filePath = pathname === "/" ? "/index.html" : pathname;
+  const filePath = pathname.endsWith("/") ? `${pathname}index.html` : pathname;
   const fullPath = path.join(PUBLIC_DIR, filePath);
   if(!fullPath.startsWith(PUBLIC_DIR)){
     res.writeHead(403);
