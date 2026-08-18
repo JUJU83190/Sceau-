@@ -45,7 +45,7 @@ module.exports = async function handler(req, res){
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<rss version="2.0">',
       "<channel>",
-      "  <title>Sceau — Dernières alertes de la liste noire AMF</title>",
+      "  <title>Sceau | Dernières alertes de la liste noire AMF</title>",
       `  <link>${SITE_URL}/</link>`,
       "  <description>Ajouts les plus récents à la liste noire de l'Autorité des marchés financiers (AMF), relayés par Sceau.</description>",
       "  <language>fr-fr</language>",
